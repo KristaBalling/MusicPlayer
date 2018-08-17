@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button prevButton;
     private Button playButton;
     private Button nextButton;
+    private Thread thread;
 
 
     @Override
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        }
+    }
 
     public void setUpUI() {
 
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         prevButton = (Button) findViewById(R.id.prevButton);
         playButton = (Button) findViewById(R.id.playButton);
         nextButton = (Button) findViewById(R.id.nextButton);
+
 
         prevButton.setOnClickListener(this);
         playButton.setOnClickListener(this);
@@ -108,9 +110,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void startMusic() {
         if (mediaPlayer != null) {
             mediaPlayer.start();
+            updateThread();
             playButton.setBackgroundResource(android.R.drawable.ic_media_pause);
 
         }
 
     }
-}
+
+    public void updateThread() {
+
+       thread = new Thread() {
+           @Override
+           public void run() {
+
+               try {
+
+                   while (mediaPlayer != null && mediaPlayer.isPlaying()) {
+
+                   }
+                   Thread.sleep(50);
+                   runOnUiThread(new Runnable() {
+                       @Override
+                       public void run() {
+                           int newPosition = mediaPlayer.getCurrentPosition();
+                           int newMax = mediaPlayer.getDuration();
+                           seekBar.setMax(newMax);
+                           seekBar.setProgress(newPosition);
+
+                           //update the text
+                           leftTime.setText(String.valueOf(new java.text.SimpleDateFormat("mm:ss")
+                                   .format(new Date(mediaPlayer.getCurrentPosition()))));
+
+                           rightTime.setText(String.valueOf(new java.text.SimpleDateFormat("mm:ss")
+                                   .format(new Date(mediaPlayer.getDuration() - mediaPlayer.getCurrentPosition()))));
+
+
+                       }
+                   });//close runnable
+
+               } catch (InterruptedException e) {
+
+                   e.printStackTrace();
+
+               }
+           }
+
+     };
+           //close new thread
+
+       thread.start();
+
+    }//close updateThread method
+}//close class
