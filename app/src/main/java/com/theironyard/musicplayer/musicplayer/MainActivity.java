@@ -1,6 +1,8 @@
 package com.theironyard.musicplayer.musicplayer;
 
 import android.media.MediaPlayer;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -17,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView artistImage;
     private TextView leftTime;
     private TextView rightTime;
-    private SeekBar seekBar;
+    private SeekBar seekbar;
     private Button prevButton;
     private Button playButton;
     private Button nextButton;
@@ -31,8 +33,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setUpUI();
 
-        seekBar.setMax(mediaPlayer.getDuration());
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        seekbar.setMax(mediaPlayer.getDuration());
+        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
@@ -43,9 +46,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 int currentPos = mediaPlayer.getCurrentPosition();
                 int duration = mediaPlayer.getDuration();
 
-                leftTime.setText(dateFormat.format(new Date(currentPos)));
+                leftTime.setText(String.valueOf(dateFormat.format(new Date(currentPos))));
 
-                rightTime.setText(dateFormat.format(new Date(duration - currentPos)));
+                rightTime.setText(String.valueOf(dateFormat.format(new Date(duration - currentPos))));
             }
 
             @Override
@@ -65,10 +68,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.level2copy);
+
         artistImage = (ImageView) findViewById(R.id.imageView);
         leftTime = (TextView) findViewById(R.id.leftTimeID);
         rightTime = (TextView) findViewById(R.id.rightTimeID);
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
+        seekbar = (SeekBar) findViewById(R.id.seekBar);
         prevButton = (Button) findViewById(R.id.prevButton);
         playButton = (Button) findViewById(R.id.playButton);
         nextButton = (Button) findViewById(R.id.nextButton);
@@ -127,26 +131,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                    while (mediaPlayer != null && mediaPlayer.isPlaying()) {
 
+
+                       Thread.sleep(50);
+                       runOnUiThread(new Runnable() {
+                           @Override
+                           public void run() {
+                               int newPosition = mediaPlayer.getCurrentPosition();
+                               int newMax = mediaPlayer.getDuration();
+                               seekbar.setMax(newMax);
+                               seekbar.setProgress(newPosition);
+
+                               //update the text
+                               leftTime.setText(String.valueOf(new java.text.SimpleDateFormat("mm:ss")
+                                       .format(new Date(mediaPlayer.getCurrentPosition()))));
+
+                               rightTime.setText(String.valueOf(new java.text.SimpleDateFormat("mm:ss")
+                                       .format(new Date(mediaPlayer.getDuration() - mediaPlayer.getCurrentPosition()))));
+
+
+                           }
+                       });//close runnable
                    }
-                   Thread.sleep(50);
-                   runOnUiThread(new Runnable() {
-                       @Override
-                       public void run() {
-                           int newPosition = mediaPlayer.getCurrentPosition();
-                           int newMax = mediaPlayer.getDuration();
-                           seekBar.setMax(newMax);
-                           seekBar.setProgress(newPosition);
-
-                           //update the text
-                           leftTime.setText(String.valueOf(new java.text.SimpleDateFormat("mm:ss")
-                                   .format(new Date(mediaPlayer.getCurrentPosition()))));
-
-                           rightTime.setText(String.valueOf(new java.text.SimpleDateFormat("mm:ss")
-                                   .format(new Date(mediaPlayer.getDuration() - mediaPlayer.getCurrentPosition()))));
-
-
-                       }
-                   });//close runnable
 
                } catch (InterruptedException e) {
 
